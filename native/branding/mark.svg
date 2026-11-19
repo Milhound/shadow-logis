@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Shadow Logis</title>
+  <desc>A dark S drawn as one continuous route, ending in a small forward arrow.</desc>
+  <g fill="#1b2432">
+    <path d="M180 51H107C82 51 64 68 64 90C64 112 82 128 107 128H149C174 128 192 145 192 167C192 189 174 205 149 205H75" fill="none" stroke="#1b2432" stroke-width="34"/>
+    <path d="M176 28L205 51L176 74Z"/>
+  </g>
+</svg>

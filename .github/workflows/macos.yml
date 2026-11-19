@@ -1,0 +1,27 @@
+name: Native Apple Silicon build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    # This label is an Apple Silicon runner; the script also rejects Rosetta.
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install native build and PDF test dependencies
+        run: brew install qtbase qtwebengine qttools cmake ninja python poppler
+      - name: Check publication boundary
+        run: make check-publication
+      - name: Build, test and verify the standalone app
+        run: make macos
+      # Deliberately no artifact upload: operational data and PDFs stay local.

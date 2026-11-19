@@ -1,0 +1,40 @@
+Shadow Logis application license: AGPL-3.0-only. See the root LICENSE.
+Third-party notices below remain applicable to the identified components.
+
+TPS reader attribution
+
+native/tps.cpp adapts the file format algorithms in tps-parse:
+Copyright 2012-2013 E.Hooijmeijer
+https://github.com/ctrl-alt-dev/tps-parse
+Apache License, Version 2.0. Full text: Apache-2.0.txt.
+
+Reference classes: TpsHeader, TpsBlock, TpsPage, TpsRecord, TpsFile,
+RandomAccess, TableDefinitionRecord, FieldDefinitionRecord,
+MemoDefinitionRecord, MemoHeader, MemoRecord, AbstractHeader and decrypt/Key.
+
+The C++ adaptation adds strict bounds and size limits, conflict detection,
+read-only source access, Windows-1252 text handling, and SQLite migration.
+It does not claim complete TopSpeed format or legacy business-rule compatibility.
+
+Qt is dynamically linked and is not vendored into this source tree. Distributing
+a packaged application must also include the notices/licences for the Qt build
+used to package it. The supplied legacy data and Windows software are not part of
+this project's source distribution.
+
+Airline reference data
+
+native/reference/airlines.json includes public airline facts from IATA's member
+directory and OpenFlights contributors. The OpenFlights-derived database is
+distributed under ODbL 1.0, with individual contents under DbCL 1.0:
+https://opendatacommons.org/licenses/odbl/1-0/
+https://opendatacommons.org/licenses/dbcl/1-0/
+See native/reference/README.txt for attribution, processing and source limits.
+These database licenses do not apply to private shipments or application code.
+
+Inter fonts
+
+Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+Inter 4.1 regular and italic variable fonts are bundled, unmodified, under the
+SIL Open Font License 1.1. See native/fonts/OFL.txt for the full license and
+native/fonts/README.txt for source/version/checksums. The application embeds the
+fonts and license; Help > Inter font license displays the license offline.

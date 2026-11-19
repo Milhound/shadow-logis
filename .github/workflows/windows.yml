@@ -1,0 +1,48 @@
+name: Native Windows x64 build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vsversion: '2022'
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.12.*'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: 'qtpdf qtimageformats'
+          cache: false
+      - name: Install PDF and package inspection tools
+        run: |
+          python -m pip install pefile
+          if ($LASTEXITCODE -ne 0) { throw 'pefile installation failed' }
+          choco install poppler make --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Poppler/Make installation failed' }
+          $pdfTool = Get-ChildItem "$env:ChocolateyInstall/lib/poppler" -Filter pdftotext.exe -Recurse | Select-Object -First 1
+          if (-not $pdfTool) { throw 'Poppler pdftotext.exe was not installed' }
+          $pdfTool.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Check publication boundary
+        run: make check-publication
+      - name: Build, test and verify the deployed application
+        run: make windows "QT_PREFIX=$env:QT_ROOT_DIR"
+      # No uploaded artifacts, operational databases, contact records or PDFs.

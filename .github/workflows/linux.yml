@@ -1,0 +1,76 @@
+name: Linux test packages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: debian13
+            image: debian:13-slim
+            format: DEB
+          - distro: fedora44
+            image: fedora:44
+            format: RPM
+          - distro: arch
+            image: archlinux:base-devel
+            format: ARCH
+    container: ${{ matrix.image }}
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Debian build dependencies
+        if: matrix.format == 'DEB'
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git build-essential cmake ninja-build python3 poppler-utils fontconfig file dpkg-dev qt6-base-dev qt6-pdf-dev qt6-wayland libqt6sql6-sqlite fonts-liberation
+      - name: Install Fedora build dependencies
+        if: matrix.format == 'RPM'
+        run: dnf install -y git gcc-c++ make cmake ninja-build python3 poppler-utils fontconfig file rpm-build qt6-qtbase-devel qt6-qtpdf-devel qt6-qtwayland liberation-serif-fonts liberation-sans-fonts liberation-mono-fonts
+      - name: Install Arch build dependencies
+        if: matrix.format == 'ARCH'
+        run: pacman -Syu --noconfirm --needed git cmake ninja python poppler fontconfig qt6-base qt6-wayland qt6-webengine ttf-liberation
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check publication boundary
+        run: make check-publication
+      - name: Build, test and package
+        run: |
+          if [[ '${{ matrix.format }}' == ARCH ]]; then
+            useradd --create-home builder
+            chown -R builder:builder "$GITHUB_WORKSPACE"
+            runuser -u builder -- make arch
+          else
+            make linux LINUX_FORMAT='${{ matrix.format }}'
+          fi
+      - name: Upload verified package and matching source
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-logis-${{ matrix.distro }}-x86_64
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            package/linux-*/*.deb
+            package/linux-*/*.rpm
+            package/linux-*/*.tar.gz
+            package/linux-*/*.pkg.tar.zst
+            package/linux-*/PKGBUILD
+            package/linux-*/shadow-logis-source.zip
+            package/linux-*/SHA256SUMS
+      # Only explicit release files; never databases, test PDFs or screenshots.

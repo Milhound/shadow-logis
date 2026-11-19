@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Shadow Logis application icon</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#283547"/>
+      <stop offset="1" stop-color="#111823"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#f5f7fa"/>
+      <stop offset="1" stop-color="#bbc9d8"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="236" height="236" rx="54" fill="url(#tile)"/>
+  <rect x="10.5" y="10.5" width="235" height="235" rx="53.5" fill="none" stroke="#ffffff" stroke-opacity=".12"/>
+  <g transform="translate(25.6 25.6) scale(.8)">
+    <path d="M180 51H107C82 51 64 68 64 90C64 112 82 128 107 128H149C174 128 192 145 192 167C192 189 174 205 149 205H75" fill="none" stroke="url(#ink)" stroke-width="34"/>
+    <path d="M176 28L205 51L176 74Z" fill="#f5f7fa"/>
+  </g>
+</svg>

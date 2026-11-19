@@ -1,0 +1,1107 @@
+Shadow Logis native shipping review -- 2026-11-18
+=======================================
+
+Archive identity
+----------------
+Original installation archive SHA-256:
+4c82756814763b20d717f51104f3d7ce9cf6023c68a2fe933241f2980ae50311
+
+The archive holds a Clarion 5-era, 32-bit Intel Windows installation. Main
+executable depends on C5RUNX/C5TPSX and Win32-specific UI, printing and report
+modules. The archive also includes auxiliary programs, utilities, Windows
+services, and older DOS/16-bit components. No application CLW/APP/DCT source was found,
+including in the nested ZIP inventories. Bundled C++ source belongs to NSSM.
+
+This prevents a conventional native recompile of the supplied program. The
+implemented route is a native C++/Qt replacement over migrated data. Binary
+inspection was read-only; none of the supplied EXEs was executed. REA's public
+repository was reviewed as an optional disassembly aid but was not installed
+or used as a runtime. Detailed binary hashes/imports are retained privately, outside the source distribution.
+
+Migration evidence
+------------------
+157 TPS files found recursively, plus 48 historical PDFs.
+152 TPS files decoded; five preserved as archived-only.
+130,681 decoded records; 31,903 memo values; 48 PDFs preserved exactly.
+Three additional Trak TPS files contain schemas but no rows in this snapshot.
+
+Primary editable header tables:
+  CUSTOMER.TPS        1,067
+  CONTACTS.TPS            9
+  BOOKING.TPS         3,290
+  AWB.TPS             3,928
+  OBL.TPS               731
+  PLIST.TPS               3
+  CERTORGN.TPS          931
+
+Files preserved but not decoded:
+  DSSW2.TPS          Supplied owner password did not produce a TPS header
+  MGSERVER.TPS       Supplied owner password did not produce a TPS header
+  Upg 3.Tps          Supplied owner password did not produce a TPS header
+  Upg.Tps            Supplied owner password did not produce a TPS header
+  Old-AESALERT.TPS   Allocation range extends outside the supplied file
+
+Those four may use a different OWNER password or an unsupported format. An
+application username does not participate in the TPS OWNER cipher. No password
+was saved in code, commands, reports or application settings. No guessing or
+brute-force search was performed. Full source bytes remain available for later
+recovery; their business content has not been established.
+
+Cargo relationships checked on this snapshot:
+  OBLLINE.TPS:  11,367 rows; 11,332 match OBL by reference AND sequence
+  PLLINE.TPS:        4 rows; all four match PLIST by both keys
+  CERTLINE.TPS: 11,109 rows; 11,069 match CERTORGN by both keys
+There are no duplicate header composite keys in these three header tables.
+35 bill-of-lading lines and 40 certificate lines lack an exact header match.
+All remain in SQLite; the UI does not invent a parent for them. Reference-only
+matching would attach some lines to different sequences and is deliberately
+not used. These relationships are data-supported, not original-code verified.
+BOOKLINE's 537 records also remain imported. Its parent relationship is not
+confirmed, so it is not shown as booking cargo in the current interface.
+
+Booking/document relationships corrected in 0.2.1:
+  2,961 bookings have at least one matching imported document reference.
+  5,397 document headers match: 3,778 AWB, 712 OBL, 2 PLIST, 905 CERTORGN.
+Matching uses the complete, nonempty reference (case/outer spaces normalized).
+Each document sequence is listed separately; native booking IDs take priority.
+If multiple bookings share a reference, reference matches are explicitly marked
+for review. This is a data-supported association, not recovered original code.
+Unmatched documents remain available in Shipping documents; lookup does not
+rewrite imported rows or fabricate stored links. Empty dialogs explain why.
+
+All 3,928 imported AWB piece/gross totals exactly equal the first FIVE array
+slots. The sixth slot carries legacy working values and was incorrectly being
+shown/summed as cargo. It remains stored but is excluded from editing, totaling,
+detail/history display and PDF cargo rows. All four working values survive an
+edit to real cargo.
+Seventy imported AWBs need unit review; their stored values remain unchanged.
+
+Storage design and checks
+-------------------------
+source_files preserves complete TPS files, hashes and decode status.
+datasets preserves field/memo schemas and import counts.
+records stores the legacy row identity, original bytes, searchable/editable
+JSON values and a revision number. Numeric values remain strings to avoid
+binary rounding of exact decimals. Arrays remain arrays. Windows-1252 text
+is an explicit assumption; original bytes allow later correction.
+memos preserves every joined memo byte sequence, including orphaned values.
+documents preserves historical PDF bytes and hashes.
+record_history retains prior JSON values for changed records in the same
+transaction as each edit. A stale version fails rather than replacing changes.
+
+Import verification read back every original row byte string and checked row
+counts. Independent Python/sqlite3 verification then matched all 205 archived
+files to source hashes, validated record extents/counts, memo counts, JSON and
+SQLite integrity. Original source preservation does not prove correct active
+row selection from TPS indexes. That still requires application reconciliation.
+
+Tests exercised
+---------------
+646 synthetic parser/storage/shipping checks passed, plus PDF/preview regression
+and copied-data workflow integration checks. All four CTest suites passed.
+Synthetic fixtures cover prefix-compressed records, RLE literals/repeats and
+padding, exact decimals, arrays, CP1252, memo assembly, owner encryption round
+trip, incorrect passwords, truncated headers/blocks, conflicting row IDs,
+missing memo fragments, import failures, private database permissions, original
+file/PDF/raw-row preservation, reopen persistence, revision rollback, duplicate
+references, array shape checks and Clarion date/leap-day conversions.
+
+Copied-data integration checks exercise the real native record editor, save
+without altering hidden fields, creation of contacts/bookings/four document
+types, cargo creation/editing/numbering/parent links, date persistence, all five
+GUI sections and original PDF retrieval. Version 0.2 adds booking-to-document
+links, booking-to-AWB cargo transfer, exact row totals, failed-save input
+retention, concurrent-edit rejection, hidden AWB field preservation, revision
+history and verified snapshot backups. Input data is not modified by tests.
+The earlier generic draft supported memo continuation. Fixed AWB forms now
+reject an 80-line overflow fixture without replacing the existing PDF. Shipment
+summaries retain pagination. The four AWB editor tabs were visually inspected.
+
+Version 0.2.1 regression checks exercise 16 real imported booking matches, all
+3,928 AWB totals, working-slot preservation after editing, populated linked
+document dialogs and exact sequence selection. Synthetic cases cover empty and
+duplicate references, different document types and explicit-link precedence.
+The white-on-white export regression was caused by QTextDocument inheriting
+the desktop text palette. PDF text now uses an explicit print palette; rendered
+AWBs and summaries are pixel-identical under forced light/dark desktop themes.
+The reported example now renders on one page with 7 pieces / 735 kg; its PDF
+and the dark-theme preview were visually inspected.
+
+The native Qt PDF preview displays generated booking summaries, all four
+shipping document types, imported AWBs and preserved PDFs before a save dialog
+is offered. Tests verify visible rendered content, page boundaries, percentage
+and fit zoom, cancel without writing, save-button handling, byte-for-byte saved
+copies, owner-only output and invalid-PDF/save-failure handling. All 48 archived
+PDFs loaded successfully; an original PDF preview/save preserved its bytes.
+Preview bytes are held in memory; temporary generated PDF files are removed
+before the dialog opens. Previewing and linkage lookup do not edit the database.
+
+The Linux executable is an x86-64 ELF linked to Qt and system libraries.
+There is no Wine or Windows runtime dependency. GUI screenshots and synthetic
+PDF exports were rendered for visual inspection with the offscreen Qt driver.
+Live Wayland access is denied by this sandbox (Operation not permitted).
+macOS compilation, .app deployment, signing/notarization, printer dialogs and
+hands-on operator acceptance have NOT been tested here.
+
+Version 0.3.0 form and print changes
+------------------------------------
+In 0.3, the AWB front used a sanitized template recovered from a supplied PDF.
+That background and its recovery tool were removed from source in 0.11; see
+the publication audit below. This paragraph records the earlier implementation.
+Its original linework and fixed wording remain; all original shipment values
+were removed before embedding. The fixed background renders at 600 dpi through
+Qt PDF; variable text is native vector text. Charges, declarations, account
+information, dimensions and existing signature text map into the original
+boxes. Customer lookups supply carrier/agent information using stored IDs.
+No legal reverse side or new signature is manufactured. Long fields fail
+explicitly, without clipping or replacing an existing PDF.
+
+The VICS freight BOL follows the user's supplied blank form. New VICS-specific
+fields are stored separately in NATIVE:VICS_* values; the eight-row order table
+is shape-checked. Ocean routing and signatures are preserved. No carrier, SCAC,
+freight term, hazardous classification or domestic shipping identifier is
+inferred from unrelated ocean fields. The fixed cargo area refuses overflow;
+approved supplemental-page support is outstanding. This is not a reproduction
+of an ocean carrier's negotiable bill of lading.
+
+Preprinted mode uses a separate field registration profile measured from the
+user's 9.5 x 24 inch continuous-form image. A single 684 x 1728 point PDF contains
+two text-only AWBs at a 12-inch pitch. It includes no background image, boxes,
+fixed wording or draft footer. Per-session x/y offsets and x/y scales support
+registration. Bounds checks reject adjustments that move text off the sheet.
+The native Print action requires matching driver paper size and uses actual
+physical dimensions. Its Qt rendering path was tested with a PDF print device;
+no physical print job was sent and no dot-matrix driver/feed was validated.
+
+Regression tests cover original AWB Letter geometry, charge/declaration fields,
+Unicode and slot-six exclusion; VICS fields, preserved unexecuted signatures
+and order persistence; refusal of overflow; identical light/dark output; two
+continuous copies with no template images, exact stock dimensions, physical
+registration offsets and actual-size printing. The GUI integration uses a
+consistent temporary database snapshot, including preview and save controls.
+
+Version 0.3.1 AWB description fit correction
+-------------------------------------------
+The reported A-8791-26 / sequence 4009 failed because the renderer reserved a
+fixed five-row dimension area even with only one populated dimension row.
+Goods descriptions now use the space above the actual dimension table, measured
+in physical points for each form. Dimension headings align with their columns.
+CRLF and bare-CR memo breaks are normalized; if text still does not fit, empty
+spacer lines are removed from the rendered description only. Every nonempty
+line remains in order. No database fields are rewritten. Oversize text still
+fails atomically at the existing minimum font size; no continuation is invented.
+
+Regression fixtures cover one through five dimension rows on both form sizes,
+mixed line endings, spacer fallback, every description/dimension value on each
+copy, panel bounds and separation, and preservation of an existing PDF on
+overflow. The reported imported AWB is also exercised through both GUI preview
+actions using a disposable database snapshot.
+
+Validation: all four CTest suites and the imported-data GUI workflow passed.
+A read-only text-only export audit of all 3,928 imported AWBs (without optional
+carrier/agent lookups) improved from 3,293 to 3,562 successful exports. All
+previously successful exports still passed. The remaining 366 include 67 goods
+overflows, 82 unit-validation failures, and 217 other field/charge overflows;
+this correction does not claim every imported record is ready to print.
+A-8791-26 passed with its full carrier/agent context in both modes. Extracted
+goods/memo characters match the source on all three rendered copies, allowing
+only whitespace differences. Both continuous copies are pixel-identical at
+72 dpi. Their registration overlays, the original-form PDF and the native
+preview were visually inspected. No physical printer or Mac was available.
+
+Version 0.4.0 Shadow Logis naming and document polish
+----------------------------------------------------
+The user named the application Shadow Logis. Native namespaces, CMake targets,
+Linux/macOS executables, UI strings, PDF metadata and source packaging use the
+new name. Existing migration format identifiers and stored data remain valid.
+The launcher discovers the sole existing SQLite database under data/ without
+renaming it. Source-archive provenance and third-party notices are retained.
+The original executable's business logic has not been recovered; the TPS
+reader and shipping workflows are native implementations, and the printed AWB
+front was recovered from a supplied historical PDF.
+
+Generated AWBs omit the former product copyright footer at the user's request.
+Template recovery removes exactly 79 shipment objects and that one footer.
+The form above the footer is pixel-identical to the preceding blank template.
+Archived historical PDF bytes remain unchanged. Generated draft footers now
+contain only the document type, shipment reference and sequence.
+
+Whole weights display without a zero decimal fraction in the AWB, cargo editor
+and record details. Genuine fractional weights retain their stored precision,
+as requested; amounts and rates retain their decimals. Editing another field
+does not rewrite a weight merely because its display changed. Exact stored
+totals and decimal arithmetic remain unchanged.
+
+A-8791-26 stored only "Singapore (Changi In" in its 20-byte legacy field. Its
+final routing code SIN matches a complete name in the migrated AIRPORTS table.
+The compact label "SIN - Singapore (Changi)" now fits inside both printed
+destination boxes. Completion requires an unambiguous directory match and
+matching stored name/prefix; custom or conflicting names are preserved. An
+overlong completed label falls back to the stored text.
+
+Validation: the packaged source was extracted into a clean directory, built on
+Linux, and passed all four CTest suites. The imported-data workflow passed with
+the actual airport label and whole-weight editor/preview assertions. The final
+AWB and text-only overlay were visually inspected; saved values, fractions and
+amounts were checked independently. The operational database has no new records
+or history revisions. A local compatibility symlink routes the old executable
+path to build/shadow-logis; the previous binary is retained in private review
+artifacts. macOS compilation and physical printing remain untested.
+
+Remaining work before a production cutover
+-----------------------------------------
+1. The user accepted the recovered shipping data as sufficient. The five
+   undecoded files stay archived for possible recovery and do not block
+   development of the requested workflows.
+2. Compare active-record counts and representative records against original
+   legacy reports; validate index/deletion semantics and text encoding.
+3. Review imported reference matches and unmatched cargo with operational
+   reports. Native documents carry explicit booking IDs; imported matches are
+   labeled by their reference basis and do not collapse document sequences.
+   AWB pieces, gross and chargeable weights, units and goods are editable.
+   Stored dimensions and rates/charges now print. Dimension editing, dimensional
+   calculations and rate/charge workflows remain unimplemented.
+4. Review the reproduced original AWB and supplied VICS freight BOL with the
+   operator/carrier. Add approved BOL supplements, any specific ocean carrier
+   layout, reverse-side terms and issuance rules. Certificates and packing
+   lists remain summaries. Test the text-only AWB with the actual dot-matrix
+   printer and 9.5 x 24 stock; software registration checks do not prove feed.
+5. Compile/package on the target Apple Silicon Mac and test native UI, database
+   copying, save/reopen, PDFs and the actual printing workflow there.
+
+References used
+---------------
+TPS format/decryption reference (Apache-2.0):
+  https://github.com/ctrl-alt-dev/tps-parse
+Optional binary-analysis tooling reviewed:
+  https://github.com/morluto/rea
+Qt macOS build/deployment:
+  https://doc.qt.io/qt-6/macos.html
+Qt native PDF preview:
+  https://doc.qt.io/qt-6/qpdfview.html
+Qt text drawing palette:
+  https://doc.qt.io/qt-6/qabstracttextdocumentlayout-paintcontext.html
+Clarion standard date convention:
+  https://www.clarion.help/doku.php?id=date_pictures_1.htm
+
+Version 0.5.0 shipment workspace and air dangerous goods
+-------------------------------------------------------
+Opening the application now shows Bookings / shipments. A selected shipment
+owns document tabs and a per-type sequence selector. Contacts/customers are
+under Address book; database operations are under File; unmatched documents
+and preserved PDFs remain in Archive. Empty imported bookings are hidden by
+default with an explicit Workspace menu toggle to show them. No records are
+deleted. Booking edits are grouped into shipment, parties, routing/dates and
+cargo/notes. Summaries show addresses side by side with labeled shipping data.
+
+The migrated DANGER.TPS dataset contains zero records; DANGLINE.TPS contains
+one empty orphan record (reference 1234). There are no completed declarations
+to restore. A separate native DGDECLARATION record type uses the existing
+versioned JSON record store without changing TPS payloads or schema identity.
+Its schema is available even when no legacy DG dataset exists. It supports
+seven-column multiline goods rows, explicit aircraft and shipment-type
+choices, handling/emergency information and signatory/date fields. Drafts may
+be saved incomplete. It does not classify goods, determine packing instructions,
+validate regulatory compliance or apply a signature. The renderer follows the
+supplied standard air-form examples and IATA's public column-format reference;
+it uses A4 red borders, repeated numbered pages and atomic overflow checks.
+Maritime DG declarations and preprinted DG stock registration are not included.
+
+New documents copy common parties and routing from bookings. Selecting a linked
+AWB can populate a new air DG declaration's number, parties, airports and
+handling, retaining the chosen AWB ID. The app never chooses among ambiguous
+reference matches. Existing documents are not silently synchronized. New BOL,
+packing-list and certificate records receive a first cargo line from booking
+commodity text, package count, weights and volume in the same transaction as
+the parent document. Separate linked document sequences are allowed; existing
+reference and parent-link identities remain protected.
+
+Validation covers native DG persistence without imported schemas, reopen,
+history, optimistic conflicts, multiple sequences, strict field shapes and
+dates, explicit blank classification defaults, PDF fields and A4 geometry,
+whole-row pagination, retained fractions, unchanged existing PDF on overflow,
+and theme-independent rendering. Workflow integration uses a disposable backup
+of the supplied database, checks the real menus/tabs/sequence selectors, creates
+a DG declaration through the UI using a chosen AWB, reopens its goods and tests
+the actual tab Preview action. Existing AWB/BOL/summary/original preview checks
+remain. Physical printer feed and an actual Apple Silicon build remain untested.
+
+Version 0.6.0 marine document workflow
+--------------------------------------
+Dangerous goods is paused at the user's request. Its UI tab is replaced by
+Dock receipts; existing DG records and code are preserved. Ocean bills of
+lading now use a separate marine form instead of the truck VICS form. VICS
+remains available through Documents, with its editor fields hidden until
+Show truck freight fields is checked.
+
+DODR.TPS contains six delivery-order/dock-receipt headers; DODRLINE.TPS contains
+eight cargo records. These sources now support editing, booking links and cargo
+line numbering using DLI:DO_LINENUMBER, without changing their original data.
+Native JSON extensions supply missing consignee, notify and marine routing
+fields. Historical delivery recipient addresses are not inferred as consignees.
+Ocean documents expose existing notify, pre-carriage, port/terminal, freight
+notes and issue fields. Both documents can copy the other document's parties,
+routing and cargo, with explicit source selection and independent new versions.
+Copied cargo and its parent are inserted in one transaction. Parent source
+version changes and cross-shipment links are rejected; all source data remains.
+
+The Letter-size forms follow conventional US export-form arrangements;
+references and scope are documented in native/forms/README.txt. These are draft
+native renditions, not carrier-issued stationery or a source of carrier-specific
+contract conditions. Signatures and receipt attestations remain blank. Long
+cargo entries paginate without losing their text; oversized routing/instruction
+fields continue as labeled document information. Fixed party/address overflow
+fails atomically. All numeric display retains genuine fractions.
+
+Validation: six CTest suites, including marine PDF/sequence/overflow regression,
+and the real-data-copy GUI workflow passed. All 731 OBL headers and six DODR
+headers generated previews. The workflow checks both directions of marine
+copying, exact cargo contents, separate versions, saved edits, date fields,
+stale-source failure, menu destinations and native previews. Existing AWB,
+preprinted AWB and 48 archived PDF checks still pass. Synthetic one-page forms,
+six-page cargo continuation and document-note continuation were rasterized and
+visually inspected. The operational database hash is unchanged. Actual macOS
+hardware and physical printer output remain untested.
+
+Version 0.7.0 compact shipment workspace
+----------------------------------------
+The introductory heading/text is removed from the top of the main window.
+Search, Add shipment, Edit shipment and Delete shipment share one compact bar.
+Edit shipment always targets the booking, even while a document tab is selected.
+Contacts remain in Address book, with explicit Add contact and Edit contact
+actions and double-click editing of an existing row.
+
+New/edit shipment uses a single scrollable page: references, side-by-side shipper
+and consignee addresses, routing beside dates, cargo quantities, instructions
+and customer contact. Customer selection fills the corresponding address/contact
+fields. Save/Cancel stay outside the scrolling area. The default 1160 x 900
+layout shows the main shipment data together; smaller windows scroll vertically.
+Native Qt controls inherit the platform appearance.
+
+STATUS CLEANUP NOTE (user request, 2026-11-18): BOO:STATUS is no longer used by
+the user. It is hidden from the list, booking editor and shipment detail view.
+The database field, imported values, TPS schema/source bytes and prior versions
+are retained. Editing other fields never clears or normalizes Status. Consider
+removing this obsolete field in a future, separately reviewed cleanup only after
+checking migration, reporting and compatibility consumers. No schema or stored
+Status cleanup was performed in this release.
+
+Shipment deletion is recoverable. A separate NATIVE:DELETED_AT UTC timestamp
+removes the booking from the working list without repurposing BOO:STATUS or
+deleting records. Workspace > Deleted shipments restores it. Both operations
+preserve old versions and reject stale edits. Documents, cargo, archived files,
+original fields and links remain intact. Deleted references stay reserved, and
+legacy duplicate-reference ambiguity remains visible rather than reassigned.
+New documents cannot be created from a deleted booking until it is restored.
+Existing documents remain accessible through Archive. There is no permanent
+purge in the UI. Versions before 0.7 do not understand the deletion filter.
+
+Validation: six CTest suites and the copied-data document workflow passed.
+The focused UI test uses a consistent temporary database copy and exercises
+add/edit shipment, existing contact editing, Status preservation, canceled and
+confirmed deletion, restore, document/link retention and reference reservation.
+The shipment editor was rendered and inspected at 1160 x 900 and 900 x 700;
+the smaller view needs no horizontal scroll and its lower fields remain
+accessible. Operational data was not edited. macOS hardware and physical
+printing remain untested.
+
+Version 0.8.0 document editors and separate address book
+---------------------------------------------------------
+Shipment toolbar buttons now read Add, Edit and Delete. Address book opens an
+owned dialog over the shipment window, with Customers and Contacts tabs, search,
+Add/Edit, double-click editing and revision history. Closing it leaves the main
+shipment selection, search and document tab/sequence in place.
+
+Air waybills, ocean BOLs, dock receipts, certificates of origin and packing lists
+now use a single scrollable editor with side-by-side party and field groups.
+All previously supported fields remain accessible. AWB cargo retains its five
+editable rows and exact-total rules; optional VICS fields expand in the BOL
+editor. Save/Cancel stay outside the scrollable area. Cargo lines are also
+accessible from saved marine, certificate and packing-list editors. This changes
+data entry, not the PDF templates or document acceptance status.
+
+The shipment editor now has Documents type/sequence selectors and Add/Edit/View.
+Double-clicking a shipment leads directly to this workflow, while the main
+window's document tabs remain available. Add copies from saved shipment data,
+with the same optional marine source selection as the main window. Pending
+shipment edits require explicit Save/Cancel before document creation; failed
+validation or conflicts keep the editor and inputs open. New shipments must be
+saved before adding documents. Document saves are independent: closing/canceling
+the shipment editor does not undo a saved document or an explicitly saved
+shipment, but does discard later unsaved shipment edits. The main window reloads
+document sequences on return. View uses the same native PDF preview/print path.
+
+Validation: six CTest suites and the imported-data workflow passed. The focused
+UI test covers separate address-book creation/editing and context preservation,
+all five document layouts, every supported field remaining reachable, smaller
+windows, hidden truck controls, save/reopen and unrelated-value preservation.
+It also exercises shipment double-click, nested Add/Edit/View for all five
+document types, latest-data prefilling, canceled save-before-create, explicit
+shipment save followed by canceled document creation, nested cargo access and
+parent cancellation after document saves. Screenshots were visually inspected.
+Integration writes use disposable database copies. The live database changed
+during this work before the UI test runs; it was not replaced or rolled back.
+No synthetic UI test records were found in it. macOS hardware and physical
+printing remain untested.
+
+Version 0.9.0 printing, sight drafts, company profile and document deletion
+-------------------------------------------------------------------------
+Ocean BOL output now defaults to text only, with registration based on page 2
+of the user's SCANNED DOCUMENTS.pdf. Full-form review remains selectable in the
+editor. Text-only output omits fixed labels, boxes, terms, logos and draft footer.
+Letter is the provisional physical size; the scanned PDF's large media box is
+not proof of paper dimensions. Registration controls use mm offsets and scale.
+Package counts stay on one line instead of wrapping into separate digits.
+
+Continuous AWB output is one 684 x 864 point (9.5 x 12 inch) form, rather than
+two colored copies on a 9.5 x 24 page. First-form coordinates are preserved.
+The operator positions the desired red/blue form before a job. The PDF and the
+native print pipeline use the one-form page size; no second copy is generated.
+
+All six document editors offer Preview / Print beside Save and Cancel. Preview
+reads pending fields without saving, including recalculated AWB cargo totals.
+New marine/certificate/packing previews use the same initial cargo selection
+as Save, including copying marine cargo from a different document. No temporary
+database writes are used for preview. The shared Store::cargoLines draft branch
+also prevents a preview from accidentally reading a different sequence's rows.
+
+SIGHT.TPS is now a first-class linked shipment document. All 43 imported records
+render successfully; scanned draft 241176 provided a direct check of bank,
+contact, enclosure and instruction mappings. The compact editor supports the
+first/second exchange form, two Letter pages, amounts, names, banking addresses,
+enclosures and checkboxes. Blank amount-in-words is generated using exact integer
+USD cents; existing words are preserved. Invalid amounts or overflowing fields
+fail atomically. The old product footer is absent. Printed names are retained
+and signature lines remain blank for signing. This is the shipping sight-draft
+workflow.
+
+Address book > Company profile selects My company and My contact, loads their
+editable details and accepts a PNG/JPEG logo. A bounded PNG is embedded in the
+metadata profile, so backups carry the logo and original file removal is safe.
+New documents snapshot this profile: AWB issuing agent/contact, marine forwarder,
+sight-draft contact, and logistics details on certificate/packing summaries.
+Dock receipts render the logo/company/contact masthead. Historical documents
+are not rewritten when the profile changes. Other logo placements remain future
+work. Contact edits can be refreshed by selecting the contact again in Profile.
+
+Document Delete is available on the main tab and inside the shipment editor.
+It uses NATIVE:DELETED_AT, optimistic version checks and history, leaving the
+shipment, sibling forms, cargo rows and archived sources intact. Workspace >
+Deleted documents restores the selected record. Active searches/links exclude
+deleted documents. Existing and new cargo edits reject deleted parents; stale
+editors cannot resurrect deleted records. BOO:STATUS remains hidden and preserved;
+its possible future cleanup remains separate from this deletion mechanism.
+
+Validation: seven CTest suites pass. Offscreen UI and operational-copy workflow
+checks cover six editors, unsaved preview and initial cargo, nested document
+creation/edit/view/delete, cancellation, restore, company defaults/conflicts and
+backup, 3,928 imported AWB totals and 48 preserved PDFs. Test databases are
+private temporary snapshots. The operational hash changed earlier in the turn
+while app work was ongoing; no synthetic test markers or test company profile
+were present there. Its hash stayed unchanged through the final validation run.
+Synthetic and imported sight drafts, both exchange copies, the branded dock
+receipt, one-copy AWB, text-only BOL and UI screenshots were visually checked.
+No physical printer alignment/feed or native macOS execution was tested.
+
+Version 0.10.0 entry assistance and calculations
+-----------------------------------------------
+User workflow review found that kilograms/pounds were repeated manual entries,
+AWB charge and dimension fields were printable but inaccessible for editing,
+and there was no selective way to pull updated shared shipment information.
+The changes keep the shipment-first layout and add tools at the point of use.
+
+Shipment and cargo-line weight pairs have explicit Manual, kg-to-lb and lb-to-kg
+modes. Cargo-line CBM/CFT pairs have equivalent modes. Typing into a calculated
+result switches to Manual; reselecting the mode resumes. Modes persist in native
+JSON metadata. Native schema views allow fractional shipment and document header
+weights, while original TPS schemas, source bytes and existing values are kept.
+Conversions use the exact international pound/foot constants and checked rational
+arithmetic, with two decimal places for weight and three for volume. No conversion
+runs on old records without an explicit calculation mode.
+
+AWB Dimensions / weight supports the user's three separate formulas:
+  - cm3 / 6000 => kg
+  - in3 / 166 => lb
+  - CBM * 167 => kg (not the reciprocal of 6000)
+The factor is editable and stored per document. Dimensions and counts have five
+rows with explicit cargo-row assignment. Direct CBM has a volume per cargo row;
+a new one-row AWB preloads its saved shipment CBM. Results convert to the cargo
+weight unit. Dimension rounding (as entered / nearest / up) is separate from
+chargeable weight rounding (up to 1 / 0.5 / 0.01). Automatic chargeable weight
+uses max(gross, assigned dimensional weight), requiring complete piece coverage
+for dimensions or positive CBM for an active row. Typing a chargeable override
+disables that row's automatic weight only. The old sixth cargo/rating working
+slot is excluded and preserved. CBM-mode PDFs show volume and dimensional weight
+in the goods panel, suppressing inactive saved size rows without deleting them.
+Physical volume calculations use bounded long-double arithmetic; monetary
+calculations use checked integer decimal arithmetic and half-up cents per line.
+
+Rates / charges exposes rates/classes, individual fee amounts, payment sides,
+agent/carrier allocation, currency, minimum charge, AS AGREED, and summaries.
+Line, weight-charge, fee-summary and grand-total calculations are independent.
+Editing a result disables its calculation; toggles restore it. Imported rates
+and amounts default to manual. Per-unit calculations accept ordinary N/Q/K or
+blank classes, with explicit refusal for basic/minimum/ULD/special classes and
+stored minimum charges. Tariff selection, weight-break optimization, valuation
+rules and tax rules are not inferred. Fees must have valid payment/account
+choices before automatic allocation. The single printed Other charges flag
+requires a common side for automatic fee totals; mixed arrangements remain
+manual. Preview and Store::save share calculation dependency order, including
+post-reopen changes. Helper Apply modifies the editor only; Save is the write.
+
+Use shipment details reviews current/proposed party, routing, reference and note
+fields. Blanks are preselected; nonempty fields require explicit selection.
+Cargo/charges are excluded, stale/missing/deleted or ambiguous shipment ownership
+is not guessed, and copied addresses are never truncated. Choose contact fills
+names/phones and customer email; calendars retain blank dates; airport completion
+uses the imported directory and only fills blank names for an explicit selection.
+
+Reference checks (not a tariff or acceptance certification):
+https://www.iata.org/contentassets/e9cb5a72b88f4f68a5cfc572a50b60c9/eacph-22-en-final.pdf
+  Chargeable weight: greater of actual/volume, with weight-break exceptions.
+https://www.iata.org/contentassets/d9138a46fa3c417e9f03cd02833360b6/cah803-49-en-final.pdf
+  Rate classes distinguish per-unit, minimum, basic and ULD handling.
+The exact 6000 / 166 / 167 formula choices were explicitly supplied by the user.
+
+Further UX work identified: an inline cargo grid shared by shipment and marine
+forms, with reviewed total overrides; company-level defaults for frequently used
+carrier/service calculation settings; and a document readiness checklist based
+on the user's actual required fields. These need workflow decisions rather than
+silently assuming billing terms, signatures, tariff rates or classifications.
+Status remains hidden and preserved; its future cleanup note still applies.
+
+Validation: all eight CTest suites passed, including 46 focused arithmetic and
+prefill checks. The existing UI suite and the new calculation UI suite passed
+on private database snapshots. These exercise conversion overrides, dates and
+contacts, formula presets, CBM prefill, dimension unit switching, per-row coverage,
+live gross/chargeable updates, manual/resumed rates and totals, selective shipment
+reuse, airport completion, cancel, saved dependencies and generated PDF values.
+The copied-data workflow also passed for 3,928 imported AWBs, six document types,
+reference conflicts and all 48 preserved PDFs. Both calculated AWB variants and
+the entry dialogs were rendered and visually inspected. The operational database
+hash matches its pre-work hash. No native macOS or physical printer run was done.
+
+Reference lookup and publication cleanup (0.11.0)
+------------------------------------------------
+Added an embedded offline airline directory, separate modeless reference windows,
+and AWB carrier/airport, customer-country and AWB-currency field selectors. The
+6,284-row airline directory contains 383 unique IATA member entries from public
+pages and 5,901 additional historical/unverified OpenFlights records. Only the
+member snapshot is shown by default. IATA membership is not the complete airline
+code register. Source retrieval dates are displayed; activity is not inferred
+from OpenFlights' unreliable Y/N flag. Country means home country/territory.
+Numeric codes preserve leading zeros and are never inserted into AWB numbers.
+Controlled duplicate markers remain visible but are not inserted in carrier
+fields; ICAO-only records cannot be inserted into IATA fields. Duplicate code
+assignments remain separate rows. Source/license notes are in native/reference.
+Airports use the migrated reference table without exporting that table into the
+source tree. Countries/currencies use Qt/CLDR. All 11 Incoterms 2020 code/name/mode
+entries are available for reference; they do not set contract or payment terms.
+All lookups are explicit actions; they neither save drafts nor rewrite records.
+Customer choices display name, city, country and phone; internal identifiers are
+retained in item data and document links. Contact selectors already omit IDs.
+
+Public code, paths, notes and tests have been renamed to Shadow Logis or generic
+legacy-format terminology. The working database was renamed to
+ data/shadow-logis.sqlite
+without altering bytes (verified before and after). Original installation,
+archive and binary-audit evidence are preserved under private/. No private
+source content was rewritten or deleted. Root ignore rules exclude private
+inputs, live databases, QA images/logs, output and build artifacts. Packaging and
+publication checks share a positive source-file allowlist. Detailed binary-audit
+JSON is no longer shipped. The recovered AWB background has also been replaced
+with native vector linework; third-party algorithm and dataset attribution remains intact.
+The optional publication scan checks plain and dotted retired branding in text,
+paths and extracted PDF text. No usable Git repository/history was present in
+this workspace, so no commit/history rewrite or publication was performed.
+
+Validation: all nine CTest suites passed, including the new reference lookup
+suite. Real-widget entry tests covered selection into all three AWB carrier
+fields, airport lookup preserving custom names, currency and country pickers,
+hidden customer IDs preserving links, canceled edits and Save/reopen. Workspace
+UI tests confirmed separate modeless reference windows and unchanged shipment
+context. Imported-data workflows passed all 3,928 AWB totals, 16 relationship
+samples, six document types and 48 archived PDFs. Airline/Incoterms lookup
+screenshots were visually reviewed. Source publication scan found no retired
+branding, including dotted spelling and extracted PDF text. Ignore-rule tests
+confirmed every manifest file is publishable while private paths are ignored.
+Linux validation only; native macOS execution remains untested.
+
+Bundled typography, theme and final source asset audit (0.11.0)
+-------------------------------------------------------------
+Inter 4.1 regular and italic variable fonts are embedded as Qt resources and
+registered per process. They are never installed system-wide or downloaded at
+runtime. Unmodified fonts and SIL OFL 1.1 notices are included in source; Help
+shows the embedded font license and installation also copies the license text.
+Palette-derived surfaces, borders, selection/focus, section cards and primary
+actions improve the workspace and editors. The desktop palette is not replaced;
+application palette-change events refresh existing widgets. Qt handles DPI and
+larger system text sizes. Minimum UI text is 10pt; PDF renderers use independent
+font families and point sizes. Dark/light/accent switching preserves focus.
+
+The publication audit found the previous recovered blank AWB PDF was still a
+legacy software asset. That file and its recovery script now live only under
+private/retired-form/. native/awbform.cpp replaces it with authored vector rules
+and standard field labels following the user-provided blank stationery example.
+The source has no recovered PDF streams, font subsets or form metadata. Full
+AWBs retain fixed Letter geometry and form overflow validation. Text-only dot
+matrix registration is independent and unchanged. The new full face remains a
+draft requiring airline acceptance; no reverse contract or endorsement is added.
+
+Validation: all ten CTest suites passed, plus actual-widget entry and workspace
+checks and the imported-data workflow (3,928 AWBs, six document types, 48 archived
+PDFs). The font test also passed with Fontconfig reporting zero installed fonts.
+Regular and italic resolve to embedded Inter. Light/dark screenshots, compact
+editors and the populated native AWB were visually inspected. PDF tests compare
+light/dark output and a changed UI font, verify vector labels and no embedded
+background image, and retain the one-copy text-only registration checks.
+
+The requested repository target is git@github.com:Milhound/shadow-logis.git.
+The session exposes the workspace .git directory as an empty read-only tmpfs,
+so initialization, remote configuration and any commit/push cannot be performed
+here. No alternate Git directory or permission workaround was used. The source
+allowlist and ZIP exclude operational databases, original installation/archive,
+retired form, private audits, screenshots and compiled output. Native macOS and
+physical printer validation remain outstanding.
+
+Final privacy check: the 67 public text files were compared against 2,634 distinct
+contact names, address/company strings, email addresses and telephone numbers
+from the private database. Reviewed matches were public airline names in the
+independently sourced reference directory and generic words such as
+"International" and "Dangerous goods". No private contact names, email addresses,
+phone numbers or street addresses were found in source. The ZIP contains no PDFs
+at all, including generated previews, and no contact exports or uploaded logos.
+Git ignore rules additionally exclude PDF/CSV/TSV/XLSX/SQL/ZIP and raster-image
+exports inside source directories. Freshly extracted source built successfully;
+all ten tests and the no-installed-font test passed in that build. No files were
+uploaded, and no repository, remote, commit or push was created in this session.
+
+Mac build preparation and original S identity (2026-11-18)
+---------------------------------------------------------
+The repository now exists on main with the requested SSH origin, initialized
+outside this tool session. There are no commits or tracked files yet. No Git
+metadata was changed and nothing was pushed or uploaded during this work.
+
+The Mac script checks native ARM64 execution, build tools, the Xcode compiler/SDK,
+Python and Poppler. Homebrew module discovery includes qtbase, qtwebengine and
+qttools; a matching Qt installer prefix remains supported. The default deployment
+target is the build Mac's OS version rather than a hardcoded claim that every
+installed Qt/Homebrew build works on an older OS. C++ extensions are disabled;
+CMake's minimum is 3.21.1. README contains the exact setup and build commands.
+
+Installation uses a fresh staging directory and preserves the previous successful
+package. App metadata includes the display name, versions, minimum OS, high DPI
+support and ICNS icon. Project, reference-data and Inter notices live inside the
+bundle before signing. A local ad-hoc signature requires no developer account.
+The verifier checks ARM64 code, dependency/runpath relocation, Cocoa/SQLite
+plugins, PDF/PrintSupport frameworks, resources, signature, internal symlinks and
+absence of loose operational PDFs/databases/contact exports. The runtime test
+then launches the actual packaged app with Cocoa from an empty temporary folder
+and without developer library/plugin environment variables.
+
+The new --self-test path runs before workspace discovery and accepts no other app
+options. It checks an in-memory SQLite database, embedded Inter regular/italic,
+airline reference data, icon loading, PNG/JPEG codecs, a temporary synthetic PDF
+through QPrinter and QPdfDocument, and an empty rendered workspace. It leaves no
+shipping PDF behind. It is also a CTest on Linux. Portable Python fixtures cover
+otool parsing, internal/system dependencies, missing/external/absolute references,
+private data hidden behind other extensions and external framework symlinks.
+Save-dialog automation explicitly uses Qt dialogs in tests; production retains
+native system dialogs. An unused lambda capture found by Clang was removed.
+
+.github/workflows/macos.yml prepares the same build on an Apple Silicon macos-15
+runner on main pushes, pull requests or manual invocation. Repository access is
+read-only and checkout credentials are not persisted. There is no artifact
+upload step. This workflow is present in source but has not run yet.
+
+native/branding contains original S/route artwork with a small forward arrow.
+The standalone SVG uses dark ink; the application icon reverses the mark onto
+a midnight tile. PNG and ICNS are generated solely from the authored SVG via
+tools/build-icons.py. Normal builds need no image tools. The icon is embedded
+in Qt and included in the Mac bundle; its colors do not alter the UI palette.
+User-selected company logos on dock receipts remain independent. Only these two
+generated image files are exceptions to the source image exclusion rules.
+
+Validation: GCC and Clang Linux builds pass all 12 CTests. A fresh extraction of
+the 81-file source ZIP also compiles with Clang and passes all 12 tests. The
+isolated runtime check passes with an empty home/working directory, leaves no
+documents/database, and rejects a conflicting --database argument. Script syntax,
+non-Mac rejection, workflow YAML, plist template and Git ignore boundaries were
+checked. The icon was inspected at large, 64px, 32px and 16px sizes. Source audit
+finds no retired name; the ZIP contains no PDFs, contact exports, operational
+databases or private installation materials. The private database SHA-256 remains
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+
+Limits: all executed build/runtime checks here ran on Linux. Apple Clang/ARM64,
+actual .app deployment/signature validation, Cocoa/native dialogs, macOS-specific
+font metrics, clean-Mac runtime behavior and physical printing are not yet tested.
+The workflow and build script perform those automated Mac checks when run there;
+physical printer feed/alignment remains a separate hardware check. Developer ID
+signing/notarization and collecting the exact deployed Qt/runtime notices for
+public binary distribution remain outside this local development package.
+
+Windows build preparation (2026-11-18)
+--------------------------------------
+The initial Windows target is Windows 11 x64 with MSVC 2022 and the matching
+Qt 6.12 kit. Linux and Mac retain the same application/data code. CMake now uses
+compiler-specific warnings, MSVC UTF-8/standard-conformance settings and guarded
+Windows definitions. A desktop shadow-logis.exe avoids an unwanted console;
+shadow-logis-cli.exe preserves terminal migration/export input and output. Both
+embed the original S icon and version resources. The new multi-resolution ICO
+is generated from the authored SVG and is the only additional image exception.
+
+tools/build-windows.ps1 checks the x64 developer environment, Qt PDF kit and
+test/deployment tools, builds with Ninja/MSVC, runs CTest, and installs to a fresh
+staging directory. Qt deployment collects the runtime; the official Microsoft
+Visual C++ x64 Redistributable is a target-machine prerequisite instead of loose
+compiler-runtime DLLs. Verification precedes promotion to package/windows, and
+the previous successful package is preserved. The script installs no system
+software. README contains prerequisites, commands and private database transfer
+instructions. This is an unsigned development folder, not an installer.
+
+The verifier checks x64 PE headers/imports, GUI/console subsystems, icon/version
+resources, Qt Windows/SQLite/PDF/PrintSupport components and project notices.
+Dependency resolution excludes developer PATH fallbacks. It rejects package
+links, operational documents/databases/exports and compiler-runtime DLL copies.
+Both installed executables then run --self-test with the native Windows platform
+and a temporary working/profile directory, without developer Qt/library paths.
+The self-test uses only synthetic data and now checks private output creation.
+Qt 6 includes its native Windows printer implementation in Qt6PrintSupport;
+the older separate Windows printer plugin is not required by this package.
+
+Windows QFile permissions do not enforce user-only ACLs. A shared helper now
+protects the actual open output/temp file using a non-inheriting current-user
+ACL and verifies it before private bytes are written. Unix owner-only behavior
+is retained. Documents, preview saves, migration output and backups use this
+helper. Failure aborts saving rather than claiming privacy on an unsupported
+filesystem. Existing databases/directories are not modified. The database's
+containing folder must also be private for SQLite journals. Console password
+input now disables Windows console echo and restores it on success or failure.
+
+.github/workflows/windows.yml prepares an MSVC x64 build on windows-2022, installs
+Qt/PDF test tools, audits the source boundary and runs the build/package checks.
+Repository access is read-only, checkout credentials are not persisted, and
+there are no artifact uploads. The workflow has not run in this session.
+
+Validation: GCC and Clang Linux builds pass all 14 CTests. A fresh extraction of
+the 90-file source ZIP also builds with Clang and passes all 14 tests. New tests
+cover private-file creation/replacement/cancellation, Unicode paths, shared-file
+rejection and portable Windows dependency/package checks. LLVM compiles the
+actual Windows icon/version resource and links synthetic x64 GUI/console PE
+fixtures; their subsystem and resource headers verify correctly. All seven ICO
+sizes are present. Workflow YAML, source whitespace, publication allowlist and
+Git ignore boundaries were checked. No compiler warnings occurred in the Linux
+GCC/Clang builds. The source ZIP contains no operational PDFs/databases/contact
+exports, private installation materials or retired name. No Git metadata was
+changed and nothing was uploaded. The private database SHA-256 remains
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+
+Limits: Windows/MSVC/PowerShell are not available on this Linux host. The complete
+Windows Qt application, Windows ACL/password APIs and deployed package have not
+been executed here. The synthetic PE resource check is not a Windows app build.
+Windows CI, clean Windows 11 startup, native dialogs, font metrics and actual
+printer drivers/feed/alignment remain to be exercised on Windows. Windows ARM64
+and 32-bit builds are not configured. Authenticode signing, an installer and the
+exact deployed third-party runtime notices remain before public binary release.
+
+Shipment tabs and airport lookup cleanup (2026-11-18)
+----------------------------------------------------
+Packing lists is hidden from the shipment tab bar. The document type, editor,
+Archive access and all imported records remain intact. This is a presentation
+change only; no data or schema cleanup was performed. Airport lookup windows,
+including field pickers and the empty-directory view, hide the repeated Details
+column and give that space to Name / location. Other reference tables retain
+their Details columns, and airport search/copy/selection behavior is unchanged.
+
+The Linux app was rebuilt. All 14 CTests and the existing shipment/editor UI
+integration checks passed; the latter operates on a disposable database copy.
+The working database SHA-256 remained unchanged. The source package was refreshed
+after the publication audit. No files were uploaded or Git metadata changed.
+
+AWB print labels (2026-11-18)
+-----------------------------
+The AWB format selector and shipment preview actions use Laser AWB and Dot Matrix.
+Preview headings and the dot-matrix alignment dialog use the same names. The
+ocean BoL's Full form label remains specific to that document. This changes UI
+wording only; print geometry, one-copy output and database records are untouched.
+
+Unnecessary editor scrollbars (2026-11-18)
+------------------------------------------
+Imported fixed-size arrays include unused trailing empty slots: address arrays
+reserve seven lines, and AWB accounting information reserves ten. Showing those
+slots as blank paragraphs caused nested scrollbars even when the actual text fit.
+Multiline record editors now omit trailing array padding on initial display and
+when applying copied values. The unchanged-value comparison uses that same
+display representation, preserving the exact original arrays on unrelated saves.
+Edited arrays still receive the schema's required padding on save. Internal
+blank lines, spaces and memo content remain intact. Long text retains normal
+scrolling; no scrollbar is forcibly disabled and no text is clipped or deleted.
+
+The Linux build and all 14 CTests pass. UI integration checks cover no padding-only
+scrollbars, scrolling for long text, removal after shortening, internal blank
+lines and preservation of every unrelated stored field on save/reopen. A rendered
+synthetic AWB editor was visually checked. The working database SHA-256 remained
+unchanged; all edits in the integration check used a temporary snapshot. Source
+publication audit passed, and the source ZIP was refreshed. Nothing was uploaded.
+
+Document action wording (2026-11-18)
+-----------------------------------
+Cargo lines is now Cargo, with a tooltip explaining its packages, descriptions,
+weights and measurements. Standard document preview actions now read Preview;
+the requested Laser AWB and Dot Matrix actions remain distinct. History no longer
+has a trailing ellipsis, in both the shipment workspace and Address book. The
+document editor uses the same Cargo label. These changes affect wording only.
+
+Inline cargo and workspace polish (2026-11-18, version 0.11.1)
+------------------------------------------------------------
+The old cargo list rendered every imported row as packages plus a separator and
+description, producing dots for empty spacing records and omitting other useful
+fields. Cargo now uses a shared table with packages, descriptions/notes, marks,
+weights and volume with units, and quantity when populated. Entirely blank rows
+are hidden by default; Show blank rows reveals them. Original order, record IDs,
+notes and blank records remain intact. PDF rendering and storage are unchanged.
+
+The table is embedded in marine, certificate and packing-list document editors,
+below the cargo amounts. Add/Edit and double-click edit individual rows. Saved
+row changes remain independent of the parent document's Save/Cancel, as stated
+in the page. New documents must be saved before their cargo can be edited. The
+shipment workspace's Cargo shortcut still opens the same table separately.
+Removing the editor's Cargo button removes the stacked toolbar row. The BoL
+print option now reads Text Only; AWB labels remain Laser AWB and Dot Matrix.
+
+Without a selected shipment, the entire details panel is hidden and the list
+uses the available height. Clearing selection or filtering out its row also
+hides the panel and disables selection-dependent actions; reselection restores
+the workspace. A subdued, selectable v0.11.1 label sits permanently at bottom
+right, follows light/dark palette changes and survives status messages. The CLI,
+footer, macOS bundle and Windows resource metadata share CMake's project version.
+
+All booking columns can be dragged into a different order, including Reference.
+Order is stored using stable column keys in per-user Qt INI settings, independently
+of the database, and reapplied after refreshes and archive visits. New or unknown
+keys are handled by appending missing known columns and ignoring unfamiliar ones.
+Workspace > Reset booking column order restores the default. Archive layouts and
+logical column IDs are unchanged, preserving sorting, selection and record actions.
+
+Validation: the Linux build passed without compiler warnings, all 14 CTests pass,
+and UI integration checks pass on a temporary database snapshot. Checks cover
+cargo blank filtering, record identity/order, Add/Edit, unchanged sibling/header
+records, embedded document controls, panel selection/filter transitions, restored
+split layout, movable columns, retained order after save/reopen/archive visits,
+and reset. UI tests isolate preferences in a temporary directory. Reviewed the
+rendered inline cargo/BoL selector and full-height no-selection workspace, plus
+the version label in light and dark themes. The CLI reports Shadow Logis 0.11.1.
+The private working database SHA-256 remains unchanged at
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+No Mac/Windows runtime or physical printer checks were performed for this update.
+
+Certificate of origin printing (2026-11-18, version 0.11.2)
+-----------------------------------------------------------
+Certificate previews previously fell through to exportSummary, producing a
+shipment-information PDF despite the document-specific editor. All preview
+entry points now dispatch CERTORGN.TPS to its own native certificate renderer,
+with certificate-specific headings and save filenames. The CLI also supports
+--export-certificate. No PDF or background from the archive is shipped.
+
+The Letter-size form follows the archived certificate arrangement, including
+parties, references, forwarding agent, routing, goods, declaration and chamber
+areas. The country in both declaration blocks comes from CRO:COUNTRY rather
+than a fixed US default. Declarant, chamber, country, place and notarization
+dates are now editable in the compact form; stored integer dates display as
+calendar dates. New certificates prefill the selected company's address and
+declarant name. Existing references are resolved only when unambiguous; current
+company settings do not silently replace historical certificate details.
+
+Signature areas remain blank. Cargo continues on numbered pages without
+repeating quantities, with the declaration on the last page. Blank cargo records
+remain stored but do not print. Fixed-field overflow and mismatched cargo fail
+without clipping or replacing an existing output; output retains private file
+permissions. The saved source records and archived PDFs are unchanged.
+
+Validation: all 15 CTests pass, including a new certificate renderer test covering
+form text, parties, country, all three dates, fractional weights, continuation,
+sequence isolation, privacy and atomic failure. UI integration confirms editable
+declaration fields, certificate-specific Preview / Print, unsaved country/carrier
+values in the PDF and unchanged stored records after preview. Synthetic first
+and continuation pages, the actual preview window and an imported certificate
+were rendered and visually checked. All 931 imported certificates generated
+successfully through the new renderer. The build has no compiler warnings.
+Physical printer output and native Mac/Windows builds were not exercised here.
+The working database SHA-256 remains
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+
+The accompanying sight-draft inquiry was checked against the live local database:
+all 43 SIGHT.TPS rows have imported IDs, and the source status is decoded with no
+reported issue. 41 references match a booking; the other two remain accessible
+through Archive. No additional migration or operational data changes were needed.
+
+Booking details dismissal and generated-build cleanup (2026-11-19, version 0.11.3)
+-------------------------------------------------------------------------------
+Escape on the booking workspace and the small X in the details heading clear
+the current selection and return keyboard focus to the full-height booking list.
+Search text, sorting, column order and stored records are retained. The shortcut
+is scoped to the booking workspace; dropdown popups and separate editors keep
+their normal Escape behavior. Selection actions disable when the panel closes.
+
+The local build still contained targets, autogen directories and cached project
+entries from a previous project name. Current source and generated build rules
+already used Shadow Logis. The generated build and obsolete Python bytecode were
+moved to a temporary backup, then CMake configured and rebuilt from an empty
+build directory. No legacy names remain in its paths, cache or build rules.
+Original recovery materials remain untouched in the ignored private directory.
+They, operational databases, PDFs and contact exports remain outside the source
+package allowlist. No files were committed or uploaded by this update.
+
+The six supplied scanned pages were visually checked: certificate of origin,
+text-only ocean BOL, dock receipt, laser AWB, and first/second sight-draft
+exchanges. All five document types have native printable renderers. This is
+document-type coverage, not a claim of identical stationery or verified physical
+printer alignment.
+
+Validation: clean Linux Release build without compiler warnings, all 15 CTests,
+and UI integration on a temporary database snapshot pass. Escape was exercised
+from search, table, document tabs and overview, plus mouse close, reselection,
+dropdown dismissal and editor cancellation without changing the parent booking.
+The close button and version label were visually checked in the workspace.
+The source publication audit passes. The operational database hash remains
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+No native Mac/Windows or physical printer checks were performed for this update.
+
+New workspaces, selective import and release preparation (2026-11-19, version 0.12.0)
+-----------------------------------------------------------------------------------
+The public import screen and documentation say "legacy TPS installation"; the
+retired product name remains excluded. File > New workspace creates a private,
+empty SQLite database with authored schemas for every supported document type.
+The first-run screen offers New, Open and Import. Existing workspaces are never
+overwritten. No legacy program or database is required to start fresh.
+
+Import scans an installation or copied backup for recognized TPS data folders.
+Multiple snapshots require an explicit choice. Checkboxes select company records,
+contact people, bookings, supported documents and reference directories; document
+cargo follows its parent type. Shippers and consignees share the company table,
+so those cannot truthfully be separated by source file. Archived packing lists
+and PDFs are optional and initially unchecked. Complete selected source bytes
+remain private in the workspace; this
+is category selection rather than field-level redaction. Failed decodes are
+reported, and all-TPS-failed imports do not publish a misleading empty workspace.
+Original files remain unchanged, and import does not merge into an existing file.
+
+User preferences now retain the last valid workspace, window geometry, shipment
+column order/sort, empty-booking visibility, AWB/ocean print alignment, last printer
+and PDF save folder. Corrupt alignment values fall back to defaults. Canceling
+print alignment leaves saved settings unchanged. Passwords are never saved.
+
+Project code, original art and tooling use AGPL-3.0-only. The complete LICENSE is
+included in source and installed packages and can be read in Help. Existing
+third-party notices remain. Maintainer metadata defaults to Milhound and can be
+set with SHADOW_LOGIS_PACKAGE_CONTACT; no email address was invented.
+
+Linux CPack recipes produce distribution-specific DEB, RPM and TGZ packages with
+system Qt dependencies. GitHub CI targets Debian 13, Fedora 44 and current Arch.
+The package script runs CTest, verifies exact staged contents/runtime, produces
+matching source and SHA256SUMS, and additionally verifies the extracted tarball.
+Only explicit package/source/checksum artifacts are uploaded by the Linux job.
+Mac and Windows retain their native build/verification jobs. Platform validation
+on those hosts and on Debian/Fedora follows the first repository push.
+
+Validation: all 19 CTests passed in a fresh Linux Release build with no compiler
+warnings. New authored synthetic TPS, records and PDFs let the existing shipment,
+entry and full workflow integration checks run in CI without operational data.
+Workspace tests cover onboarding, selective categories, snapshot isolation,
+password handling, private output, overwrite/traversal refusal and preferences.
+The first-run and import screens were visually checked offscreen. The generated
+CachyOS x86_64 tarball passed exact-file and isolated runtime verification both
+before packing and after extraction. The source publication check passes with
+the retired-name exclusion. No database or PDF is in either release archive.
+The operational database hash remains
+2375aa8f0a0e83fbe02a8c389c2a30d17be1a93e91a5f60cf28fd17528d2101f.
+No packages were installed, no files committed/pushed, and no physical printer
+or native Mac/Windows/Debian/Fedora validation was performed in this update.
+
+Installable Arch package (2026-11-19, version 0.12.0, package release 1)
+--------------------------------------------------------------------
+Added makepkg/PKGBUILD support alongside the standalone tarball. The ARCH build
+mode generates an exact source checksum, builds only the publication-allowlisted
+ZIP, runs the synthetic CTests, and validates both the package metadata through
+pacman and its final stripped executable after extraction. Runtime dependencies,
+desktop launcher, icon and licensing are part of the managed package. Workspace
+files are never packaged or installed under /usr.
+
+Build flags target generic x86-64 rather than a builder's native CPU. A private
+build configuration isolates package output and overrides compiler defaults
+without changing /etc/makepkg.conf or user preferences. The Linux CI Arch job
+builds as an ordinary user and uploads only explicit packages, matching source,
+the generated PKGBUILD and checksums. No system installation is performed by the
+build or verification scripts; a user can install with yay -U or pacman -U.
+
+Shared Makefile entry points (2026-11-19)
+---------------------------------------
+Added common development build/test/run/clean and native package targets for
+Linux DEB/RPM/TGZ/Arch, Apple Silicon and Windows x64. These call the existing
+verified platform scripts. The host package target selects the native script;
+it does not claim cross-compilation. JOBS controls compile concurrency, and
+Windows forwards the selected Qt prefix and job count to PowerShell. Native
+scripts remain directly usable. CI calls the same Make targets; Windows CI adds
+GNU Make and Fedora explicitly installs it in the isolated build environment.
+The Makefile is included in the publication allowlist and source ZIP. Cleaning
+uses CMake's generated-output target instead of deleting arbitrary directories.
+
+Docker DEB/RPM targets create a minimal build context from the allowlisted source
+ZIP and a Dockerfile, with no repository bind mount. Debian 13/Fedora 44 install
+their dependencies in a cached container layer, then run the native Make/package
+workflow and export only the package, corresponding source and checksums. The
+wrapper verifies the exported file set and hashes. No host package installation,
+daemon configuration changes or image publication is performed.
+
+Validation: make test passed all 19 CTests on Linux. Platform command expansion,
+paths containing spaces, source packaging and the publication boundary were
+checked. Docker CLI/Buildx are installed, but this session received permission
+denied for /var/run/docker.sock. Actual Docker DEB/RPM builds and native Mac/Windows
+execution remain unverified; the implementation is not a claim of those results.
+
+Linux minimal-image document fonts (2026-11-19)
+The first reported Debian Docker build compiled but failed six document/editor
+checks. An isolated Fontconfig setup with no system fonts reproduced the AWB
+fixed-label overflow and certificate/DG failures locally. Embedded Inter is a
+UI font and does not provide the serif and monospace document families.
+Docker and Linux CI now install Liberation Serif/Sans/Mono and Fontconfig and
+set C.UTF-8. DEB/RPM/Arch runtime metadata requires the corresponding fonts;
+tarball instructions list ttf-liberation. No layout guard or test was disabled.
+A one-point vertical inset in the AWB goods panel accommodates font ascent
+variations while retaining the existing extracted-text boundary assertions.
+The new Linux regression test isolates just the declared Liberation fonts and
+runs certificate, DG and AWB PDF checks, including text and raster checks.
+All 20 CTests passed with only Liberation system fonts available on this host.
+The operational SQLite checksum remained unchanged. Debian/Fedora container
+rebuilds remain to be run from a terminal with Docker daemon access; local
+font-isolation validation is not a claim that those builds have passed.
+
+Continuous AWB charge layout follow-up (2026-11-19)
+The Debian rerun passed the original 19 tests, but isolated-font rendering
+exposed a charge-row sizing error. Rows were measured in laser coordinates,
+then their heights were contracted by the continuous-stock mapping, without
+scaling the font. A half-point font reduction could retain the same rounded
+line height. Charge descriptions and amounts are now both measured using the
+selected form's physical column widths, matching draw-time wrapping and font
+settings. Rows reserve the larger height of the two cells, with one point of
+leading; fitting uses the actual panel height and retains overflow rejection.
+Regression checks cover multiline charge alignment/non-overlap on both forms
+and preservation of an existing PDF when charges overflow. The isolated Linux
+font test remains enabled. Debian container verification requires a user rerun.
+
+Native package tool dependency follow-up (2026-11-19)
+The user's Debian Docker run now passes all 20 tests and the staged Linux
+runtime/package-file verification. CPack then stopped because the minimal
+image lacked the file utility needed for shared-library dependency analysis.
+Added file explicitly to Debian/Fedora Docker and CI build dependencies.
+DEB/RPM preflight now reports a missing file utility before compilation starts.
+Shell syntax and isolated-PATH checks of both preflight branches passed.
+Final Debian package creation/export still requires a container rerun.
+
+Documentation split (2026-11-19)
+Replaced the root README.txt with README.md for the product overview, workspace
+setup, package installation, prerequisites and native/Docker build commands.
+Moved detailed workflow, migration and publication guidance into AGENTS.md.
+Updated the root publication allowlist and platform-script documentation pointers.
+Removed references to excluded business modules; AWB field terminology and
+imported schema preservation remain unchanged.

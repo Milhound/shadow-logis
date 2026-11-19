@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+# SPDX-License-Identifier: AGPL-3.0-only
+ARG BASE_IMAGE=debian:13-slim
+FROM ${BASE_IMAGE} AS builder
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ARG PACKAGE_FORMAT=DEB
+RUN if [ "$PACKAGE_FORMAT" = DEB ]; then \
+        apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates git build-essential cmake ninja-build python3 poppler-utils fontconfig file dpkg-dev \
+            qt6-base-dev qt6-pdf-dev qt6-wayland libqt6sql6-sqlite fonts-liberation \
+        && rm -rf /var/lib/apt/lists/*; \
+    elif [ "$PACKAGE_FORMAT" = RPM ]; then \
+        dnf install -y git gcc-c++ make cmake ninja-build python3 poppler-utils fontconfig file rpm-build \
+            qt6-qtbase-devel qt6-qtpdf-devel qt6-qtwayland liberation-serif-fonts liberation-sans-fonts liberation-mono-fonts && dnf clean all; \
+    else exit 2; fi
+
+# Context contains just this Dockerfile and the publication-allowlisted source ZIP.
+COPY shadow-logis-source.zip /tmp/shadow-logis-source.zip
+RUN python3 -c "import zipfile; zipfile.ZipFile('/tmp/shadow-logis-source.zip').extractall('/build')"
+WORKDIR /build/shadow-logis
+ARG JOBS=4
+RUN make linux LINUX_FORMAT="$PACKAGE_FORMAT" JOBS="$JOBS" \
+    && mkdir /artifacts \
+    && if [ "$PACKAGE_FORMAT" = DEB ]; then cp package/linux-*/*.deb /artifacts/; \
+       else cp package/linux-*/*.rpm /artifacts/; fi \
+    && cp package/linux-*/shadow-logis-source.zip package/linux-*/SHA256SUMS /artifacts/
+
+# Export release files to the host, without installing them or shipping an image.
+FROM scratch AS artifacts
+COPY --from=builder /artifacts/ /

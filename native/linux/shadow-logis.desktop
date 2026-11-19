@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Shadow Logis
+Comment=Shipping workspaces and documents
+Exec=shadow-logis
+Icon=shadow-logis
+Terminal=false
+Categories=Office;
+StartupNotify=true

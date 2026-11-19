@@ -1,0 +1,46 @@
+# Only these source directories and root files are intended for publication.
+/*
+!/.gitignore
+!/CMakeLists.txt
+!/Makefile
+!/README.md
+!/AGENTS.md
+!/LICENSE
+!/.github/
+/.github/*
+!/.github/workflows/
+/.github/workflows/*
+!/.github/workflows/macos.yml
+!/.github/workflows/windows.yml
+!/.github/workflows/linux.yml
+!/native/
+!/tests/
+!/tools/
+!/third_party/
+!/review/
+/review/*
+!/review/REVIEW.txt
+*.sqlite*
+*.db*
+*.sql
+*.tps
+*.TPS
+*.exe
+*.dll
+# Operational documents, contact exports and uploaded logos stay local.
+*.pdf
+*.csv
+*.tsv
+*.xlsx
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.icns
+*.ico
+# Only these raster/icon files are generated from our original vector artwork.
+!/native/branding/app-icon.png
+!/native/branding/app-icon.icns
+!/native/branding/app-icon.ico
+__pycache__/
+*.pyc
