@@ -1,6 +1,8 @@
 class ShadowLogis < Formula
   desc "Native freight shipment and shipping document workspace"
   homepage "https://github.com/Milhound/shadow-logis"
+  url "https://github.com/Milhound/shadow-logis/releases/download/v0.12.0/shadow-logis-0.12.0-source.zip"
+  sha256 "250a0896a46aea7aa43c0d6ee580ba27106024ad60bc673281e36c920a2d9acc"
   license "AGPL-3.0-only"
   head "https://github.com/Milhound/shadow-logis.git", branch: "main"
 

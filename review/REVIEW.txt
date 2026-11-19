@@ -1153,3 +1153,29 @@ installed app created an owner-only synthetic SQLite workspace and passed the
 offscreen runtime self-test using Homebrew Qt plugins. Source publication and
 archive checks passed. No public tap, release, or remote brew install was run;
 end-to-end remote installation remains to be checked after publication.
+
+2026-11-19 -- Published 0.12.0 preview release
+Source commit: 31e367e44f9da04c89ba305ff9b6d49a02ee8f8e.
+
+Debian 13 amd64 and Fedora 44 x86_64 were built locally through Docker Buildx
+on a Podman VM, using only the allowlisted source ZIP as build context. Both
+passed all 20 tests, including Linux font isolation, staged runtime verification,
+package export and checksum checks. Fedora's first compile was killed in the
+2 GiB VM; the rerun passed with 8 GiB and four jobs. The VM's original 2 GiB
+setting was restored afterward. No tests were disabled.
+
+The macOS release app includes upstream runtime notices and passed native
+Cocoa runtime and signature verification again. A separate runtime-source ZIP
+contains checksum-verified sources for the 19 Homebrew formulae, build recipes,
+patches, supporting source resources and notices. UUIDs match all 49 bundled
+third-party binaries to the installed library versions.
+
+The release contains three platform packages, application and macOS runtime
+sources, and SHA256SUMS. All six uploaded assets matched GitHub SHA-256 digests.
+The Debian/RPM source archive contents match the frozen application source ZIP.
+The Homebrew formula update is a subsequent metadata change pointing to that
+immutable release archive; it does not replace the source snapshot.
+
+Native Apple Silicon and Linux CI passed for the release commit. Windows CI
+failed while downloading Qt 6.12.1, before compiling application code; no Windows
+package is included. Clean-machine and physical printer checks remain separate.

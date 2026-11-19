@@ -25,16 +25,17 @@ original legacy application.
 - New workspaces, selective imports from a legacy TPS installation, database
   backups, edit history, recoverable deletion and remembered user preferences.
 
-This is an early test release. Linux builds have been exercised; native macOS,
-Windows and physical printer validation are still pending. Review generated forms
+This is an early test release. Debian/Fedora container tests and native Apple
+Silicon runtime checks have passed; Windows and physical printer validation
+remain pending. Review generated forms
 and test alignment with your carrier's requirements and paper stock before use.
 Workspaces are local and single-user; there is no cloud sync or TPS write-back.
 
 ## Install
 
-Use a package built for your operating system and architecture. Packages and
-matching source archives are produced by the build commands below; these
-instructions do not imply that published binaries are already available.
+Download the package for your operating system and architecture from
+[GitHub Releases](https://github.com/Milhound/shadow-logis/releases).
+Matching source archives and SHA-256 checksums accompany the release.
 
 ### Linux
 
@@ -63,38 +64,39 @@ and library versions used to build them.
 
 ### macOS — Apple Silicon
 
-After building, copy `package/macos/shadow-logis.app` to Applications or launch
-it directly. The development bundle is ad-hoc signed, not notarized; it is not
-yet a signed public installer. Intel Macs are not currently targeted.
+Extract the release ZIP and copy `shadow-logis.app` to Applications. The 0.12.0
+package requires macOS 26.1 or newer and is ad-hoc signed, not notarized.
+Intel Macs are not currently targeted. For a local build, the app is under
+`package/macos/shadow-logis.app`.
 
-#### Homebrew (after this repository becomes public)
+#### Homebrew
 
-The repository includes a source-build formula for Apple Silicon Macs. Until a
-versioned source release is published, install the latest `main` with:
+The repository includes a source-build formula for Apple Silicon Macs. Install
+the versioned release with:
 
 ```bash
 brew tap Milhound/shadow-logis https://github.com/Milhound/shadow-logis.git
-brew install --HEAD Milhound/shadow-logis/shadow-logis
+brew install Milhound/shadow-logis/shadow-logis
 open "$(brew --prefix shadow-logis)/libexec/shadow-logis.app"
 ```
 
 Homebrew installs the build tools and shared Qt dependencies. Keep this app in
 the Homebrew installation; use the standalone ZIP when you need a portable bundle.
 `brew test shadow-logis` checks a synthetic workspace and application runtime.
-To update a HEAD installation, use `brew upgrade --fetch-HEAD shadow-logis`.
+Use `brew upgrade shadow-logis` for new releases. To build the latest `main`, add
+`--HEAD` when installing; update it with `brew upgrade --fetch-HEAD shadow-logis`.
 
 Homebrew requires `owner/tap/formula`, not `owner/formula`. The explicit tap URL
 above lets this repository serve as the tap. For a one-command installation,
 publish `Formula/shadow-logis.rb` in a separate `Milhound/homebrew-tap` repository;
-users can then run `brew install --HEAD Milhound/tap/shadow-logis`.
+users can then run `brew install Milhound/tap/shadow-logis`.
 See [Homebrew's tap documentation](https://docs.brew.sh/How-to-Create-and-Maintain-a-Tap).
 
-Before offering a stable installation without `--HEAD`, publish the reviewed
-source archive from `make source` as a versioned GitHub release asset. Add its
-immutable `url`, `version` and actual `sha256` to the formula, retaining `head`
-for development installs. Run `brew install --build-from-source` and `brew test`
-against that release before announcing it. No release URL or checksum is invented
-in the current formula, and no repository or release is published by these steps.
+For each new release, publish the reviewed source archive from `make source` as a
+versioned GitHub release asset, then update the formula's immutable `url` and
+actual `sha256`. Keep that release archive fixed while updating the formula; it
+records the source snapshot used for the binaries. Retain `head` for development
+installs and check `brew install --build-from-source` and `brew test` for releases.
 
 ### Windows — x64
 
