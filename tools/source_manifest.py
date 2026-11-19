@@ -6,6 +6,7 @@ def source_files(root: Path):
     files = [root / name for name in (
         'CMakeLists.txt', 'Makefile', 'README.md', 'AGENTS.md', 'LICENSE', '.gitignore', 'review/REVIEW.txt',
         'native/forms/README.txt',
+        'Formula/shadow-logis.rb',
         'native/macos/Info.plist.in',
         'native/windows/app.rc.in',
         '.github/workflows/macos.yml',

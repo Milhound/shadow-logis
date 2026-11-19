@@ -54,6 +54,8 @@ set_target_properties(shadow-logis PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
 if(APPLE)
+    find_package(Qt6Svg REQUIRED)
+    target_link_libraries(shadow-logis PRIVATE Qt6::Svg)
     set_target_properties(shadow-logis PROPERTIES
         MACOSX_BUNDLE_ICON_FILE "app-icon.icns"
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/native/macos/Info.plist.in")
@@ -166,16 +168,17 @@ install(FILES third_party/NOTICE.txt third_party/Apache-2.0.txt DESTINATION ${SH
 install(FILES native/reference/README.txt DESTINATION ${SHADOW_LOGIS_LICENSE_DIR} RENAME reference-data.txt)
 install(FILES native/fonts/OFL.txt DESTINATION ${SHADOW_LOGIS_LICENSE_DIR} RENAME Inter-OFL.txt)
 # Install all resources before deployment's ad-hoc signing of the Mac bundle.
-if(WIN32)
+option(SHADOW_LOGIS_DEPLOY_RUNTIME "Bundle runtime libraries on macOS and Windows" ON)
+if(WIN32 AND SHADOW_LOGIS_DEPLOY_RUNTIME)
     # End-user machines use Microsoft's official redistributable; do not copy
     # arbitrary MSVC runtime DLLs out of the developer's compiler installation.
     qt_generate_deploy_app_script(TARGET shadow-logis OUTPUT_SCRIPT deploy_script
         NO_COMPILER_RUNTIME NO_UNSUPPORTED_PLATFORM_ERROR)
-elseif(APPLE)
+elseif(APPLE AND SHADOW_LOGIS_DEPLOY_RUNTIME)
     qt_generate_deploy_app_script(TARGET shadow-logis OUTPUT_SCRIPT deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR)
 endif()
-if(APPLE OR WIN32)
+if((APPLE OR WIN32) AND SHADOW_LOGIS_DEPLOY_RUNTIME)
     install(SCRIPT ${deploy_script})
 endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

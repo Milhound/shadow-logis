@@ -16,6 +16,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QUuid>
+#include <QTemporaryDir>
 #include <optional>
 #include <stdexcept>
 
@@ -573,13 +574,17 @@ QList<Record> Store::history(qint64 recordId) const {
 void Store::backup(const QString &destination) const {
     if (QFileInfo::exists(destination) || QFileInfo(destination).isSymLink()) fail("Backup destination already exists. Choose a new filename.");
     if (!QFileInfo(destination).dir().exists()) fail("Backup directory does not exist");
-    const auto partial = destination + ".partial-" + QUuid::createUuid().toString(QUuid::Id128);
-    QFile reservation(partial);
-    if (!reservation.open(QIODevice::WriteOnly | QIODevice::NewOnly)) fail(reservation.errorString());
-    makeFilePrivate(reservation);
-    reservation.close();
+    // VACUUM INTO must create its own file on newer SQLite versions. Keep it
+    // inside an owner-only directory until its permissions are set and checked.
+    QTemporaryDir staging(destination + ".partial-XXXXXX");
+    if (!staging.isValid()) fail(staging.errorString());
+    const auto partial = staging.filePath("backup.sqlite");
     try {
         QSqlQuery q(db); q.prepare("VACUUM INTO ?"); q.addBindValue(QFileInfo(partial).absoluteFilePath()); execute(q); q.finish();
+        QFile backupFile(partial);
+        if (!backupFile.open(QIODevice::ReadWrite)) fail(backupFile.errorString());
+        makeFilePrivate(backupFile);
+        backupFile.close();
         {
             Store snapshot(partial);
             QSqlQuery integrity(snapshot.db);

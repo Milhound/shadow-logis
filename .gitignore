@@ -17,6 +17,9 @@
 !/tests/
 !/tools/
 !/third_party/
+!/Formula/
+/Formula/*
+!/Formula/shadow-logis.rb
 !/review/
 /review/*
 !/review/REVIEW.txt

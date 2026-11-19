@@ -67,6 +67,35 @@ After building, copy `package/macos/shadow-logis.app` to Applications or launch
 it directly. The development bundle is ad-hoc signed, not notarized; it is not
 yet a signed public installer. Intel Macs are not currently targeted.
 
+#### Homebrew (after this repository becomes public)
+
+The repository includes a source-build formula for Apple Silicon Macs. Until a
+versioned source release is published, install the latest `main` with:
+
+```bash
+brew tap Milhound/shadow-logis https://github.com/Milhound/shadow-logis.git
+brew install --HEAD Milhound/shadow-logis/shadow-logis
+open "$(brew --prefix shadow-logis)/libexec/shadow-logis.app"
+```
+
+Homebrew installs the build tools and shared Qt dependencies. Keep this app in
+the Homebrew installation; use the standalone ZIP when you need a portable bundle.
+`brew test shadow-logis` checks a synthetic workspace and application runtime.
+To update a HEAD installation, use `brew upgrade --fetch-HEAD shadow-logis`.
+
+Homebrew requires `owner/tap/formula`, not `owner/formula`. The explicit tap URL
+above lets this repository serve as the tap. For a one-command installation,
+publish `Formula/shadow-logis.rb` in a separate `Milhound/homebrew-tap` repository;
+users can then run `brew install --HEAD Milhound/tap/shadow-logis`.
+See [Homebrew's tap documentation](https://docs.brew.sh/How-to-Create-and-Maintain-a-Tap).
+
+Before offering a stable installation without `--HEAD`, publish the reviewed
+source archive from `make source` as a versioned GitHub release asset. Add its
+immutable `url`, `version` and actual `sha256` to the formula, retaining `head`
+for development installs. Run `brew install --build-from-source` and `brew test`
+against that release before announcing it. No release URL or checksum is invented
+in the current formula, and no repository or release is published by these steps.
+
 ### Windows — x64
 
 Copy the entire `package/windows` folder to the destination machine, then launch
@@ -144,6 +173,14 @@ open package/macos/shadow-logis.app
 The script discovers Homebrew Qt. For another Qt installation, set
 `CMAKE_PREFIX_PATH` to the matching Qt prefix. The minimum supported macOS version
 is determined by the build SDK, deployment target and bundled dependencies.
+
+The script checks Python's standard library before building. If your default
+Python cannot load `plistlib` (for example, an Expat library mismatch), select a
+working interpreter with `PYTHON=/usr/bin/python3 make macos`. The same interpreter
+is used for CTest and bundle verification.
+Signing and native runtime verification use a temporary staging directory.
+`package/macos/shadow-logis-macos.zip` contains the verified app without Finder
+metadata; extract it outside a cloud-managed folder before copying to Applications.
 
 ### Windows build
 

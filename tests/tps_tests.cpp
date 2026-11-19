@@ -137,6 +137,8 @@ void storeTests() {
         check(snapshot.history(row.id).size()==1 && snapshot.history(row.id)[0].values==stale.values,"backup includes prior revisions");
         check(snapshot.document(snapshot.documents()[0].first)==pdf,"backup retains archived PDF bytes");
         check(hasPrivateFilePermissions(backup),"private backup permissions");
+        check(QDir(tmp.path()).entryList({"backup.sqlite.partial-*"}, QDir::Dirs | QDir::NoDotAndDotDot).isEmpty(),
+              "successful backup removes private staging directory");
         rejects([&]{store.backup(backup);},"backup refuses overwrite");
         rejects([&]{store.backup(path);},"backup refuses source overwrite");
         rejects([&]{store.backup(tmp.path()+"/missing/new.sqlite");},"backup directory must exist");

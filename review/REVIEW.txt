@@ -1105,3 +1105,51 @@ Moved detailed workflow, migration and publication guidance into AGENTS.md.
 Updated the root publication allowlist and platform-script documentation pointers.
 Removed references to excluded business modules; AWB field terminology and
 imported schema preservation remain unchanged.
+
+
+2026-11-19 -- Native Apple Silicon build follow-up
+------------------------------------------------
+Backup creation now uses a private temporary directory so VACUUM INTO can
+create a new file, then applies owner-only file permissions before publication.
+The existing backup preservation/overwrite tests cover this path; an additional
+check verifies cleanup of the staging directory.
+
+Homebrew Qt PDF components need explicit CMake paths on this host. The Mac
+build also supplies the separately installed QtSvg framework search path and
+clears copied extended attributes from the staged app before ad-hoc signing.
+PYTHON selects one interpreter for both CTest and bundle verification. This
+host uses /usr/bin/python3 because Homebrew Python has an Expat load failure.
+
+Local toolchain workaround: Command Line Tools headers lacked std::bit_cast.
+The build-macos cache uses CMAKE_CXX_FLAGS=-nostdinc++ -isystem
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1.
+This selects the installed SDK headers without changing system configuration.
+
+Final validation: all 19 native CTest tests passed. The updated backup cleanup
+assertion passed in the focused TPS test. The deployed app passed the native
+Cocoa self-test outside the agent sandbox, covering fonts/icons/references,
+SQLite, image codecs, PDF preview and print output. Bundle verification passed
+for 50 ARM64 binaries, internal dependencies and the ad-hoc signature.
+
+Deployment explicitly links QtSvg, writes qt.conf for bundled plugins, removes
+external runpaths and rewrites absolute dylib identifiers in staged copies.
+Finder metadata reappeared on bundles under this host's Documents directory;
+signing therefore uses temporary staging, with a metadata-free ZIP preserved
+in package/macos. Sandbox launches failed Cocoa plugin discovery; unsandboxed
+verification succeeded. Physical printers and clean-machine testing remain
+separate release gates; this is not Developer ID signing or notarization.
+
+2026-11-19 -- Homebrew formula preparation
+Formula/shadow-logis.rb provides an Apple Silicon macOS HEAD source build,
+using Homebrew-managed QtBase, QtPdf and QtSvg rather than deployed copies.
+SHADOW_LOGIS_DEPLOY_RUNTIME defaults ON; the formula disables deployment and
+installs the application, licenses, explicit plugin configuration and CLI link.
+README documents the explicit-URL tap, optional dedicated homebrew-tap repo,
+and stable release URL/checksum promotion after public source publication.
+
+Validation: Ruby syntax and Homebrew Formulary loading passed; the formula's
+CMake install mode built successfully with runtime deployment disabled. The
+installed app created an owner-only synthetic SQLite workspace and passed the
+offscreen runtime self-test using Homebrew Qt plugins. Source publication and
+archive checks passed. No public tap, release, or remote brew install was run;
+end-to-end remote installation remains to be checked after publication.
