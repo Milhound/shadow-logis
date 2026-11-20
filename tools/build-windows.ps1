@@ -47,6 +47,16 @@ try {
     New-Item -ItemType Directory -Force -Path $PackageRoot | Out-Null
     $Stage = Join-Path $PackageRoot ('.windows-stage-' + [guid]::NewGuid().ToString('N'))
     Invoke-Checked 'cmake.exe' @('--install', $BuildDir, '--prefix', $Stage)
+    # Use FreeType for embedded variable fonts with the native Windows platform.
+    Add-Content -LiteralPath (Join-Path $Stage 'bin/qt.conf') -Encoding ascii -Value @(
+        '', '[Platforms]', 'WindowsArguments = fontengine=freetype')
+    # Qt may deploy drivers for database servers that the application never uses.
+    $SqlDrivers = Join-Path $Stage 'plugins/sqldrivers'
+    if (Test-Path -LiteralPath $SqlDrivers) {
+        Get-ChildItem -LiteralPath $SqlDrivers -File -Filter '*.dll' |
+            Where-Object Name -NE 'qsqlite.dll' |
+            ForEach-Object { Remove-Item -LiteralPath $_.FullName }
+    }
     Invoke-Checked 'python.exe' @((Join-Path $PSScriptRoot 'verify_windows_bundle.py'), $Stage)
     $Destination = Join-Path $PackageRoot 'windows'
     if (Test-Path -LiteralPath $Destination) {

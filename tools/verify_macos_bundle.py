@@ -8,6 +8,7 @@ import argparse
 import os
 from pathlib import Path
 import plistlib
+import posixpath
 import re
 import subprocess
 import sys
@@ -28,7 +29,7 @@ def within(path, root):
 
 
 def system_path(path):
-    path = os.path.normpath(str(path))
+    path = posixpath.normpath(str(path))
     return path in ('/System/Library', '/usr/lib') or path.startswith(('/System/Library/', '/usr/lib/'))
 
 

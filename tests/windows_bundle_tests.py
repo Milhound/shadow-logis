@@ -27,11 +27,14 @@ class WindowsBundleTests(unittest.TestCase):
         self.assertEqual(resolve_dependency(b'QT6CORE.dll', self.exe, self.bin, self.system), qt)
         self.assertEqual(resolve_dependency('kernel32.dll', self.exe, self.bin, self.system), kernel)
         self.assertIsNone(resolve_dependency('api-ms-win-core-file-l1-1-0.dll', self.exe, self.bin, self.system))
+        spooler = self.system / 'WINSPOOL.DRV'
+        spooler.write_bytes(b'MZ-system-fixture')
+        self.assertEqual(resolve_dependency(b'WINSPOOL.DRV', self.exe, self.bin, self.system), spooler)
         with self.assertRaises(ValueError):
             resolve_dependency('MissingQt.dll', self.exe, self.bin, self.system)
 
     def test_untrusted_import_paths_rejected(self):
-        for name in ('../bad.dll', 'C:\\Qt\\bad.dll', 'bad/Qt.dll', 'other.exe', 'bad.dll\0'):
+        for name in ('../bad.dll', 'C:\\Qt\\bad.dll', 'bad/Qt.dll', 'other.exe', 'other.drv', 'bad.dll\0'):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 dependency_name(name)
 

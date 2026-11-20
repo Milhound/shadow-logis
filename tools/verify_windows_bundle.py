@@ -33,6 +33,8 @@ def inspect_files(root):
             raise ValueError(f'Operational file is not allowed in the package: {path.relative_to(root)}')
         if MSVC_RUNTIME.fullmatch(name):
             raise ValueError('Use the official Microsoft redistributable instead of bundling ' + name)
+        if path.suffix.lower() == '.drv':
+            raise ValueError('Use the operating system driver instead of bundling ' + name)
         if path.suffix.lower() in ('.exe', '.dll'):
             if not header.startswith(b'MZ'):
                 raise ValueError('Invalid executable header: ' + name)
@@ -42,7 +44,7 @@ def inspect_files(root):
 
 def dependency_name(raw):
     name = raw.decode('ascii').lower() if isinstance(raw, bytes) else raw.lower()
-    if not re.fullmatch(r'[a-z0-9_.+-]+\.dll', name) or '..' in name:
+    if name != 'winspool.drv' and (not re.fullmatch(r'[a-z0-9_.+-]+\.dll', name) or '..' in name):
         raise ValueError('Invalid DLL import name: ' + name)
     return name
 
@@ -51,7 +53,8 @@ def resolve_dependency(name, binary, app_bin, system32, cache=None):
     name = dependency_name(name)
     if name.startswith(('api-ms-win-', 'ext-ms-win-')):
         return None  # Windows API-set contracts are resolved by the OS loader.
-    for directory in (binary.parent, app_bin, system32):
+    directories = (system32,) if name == 'winspool.drv' else (binary.parent, app_bin, system32)
+    for directory in directories:
         # Case-insensitive on Windows and also in portable fixture tests.
         if cache is None or directory not in cache:
             entries = {p.name.lower(): p for p in directory.iterdir() if p.is_file()}
